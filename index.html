@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knolta Ticket Management System</title>
+    <meta name="description" content="A premium ticket tracking system for dinner events.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Dinner Event</h1>
+                    <p>Ticket Management System</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <!-- <span id="user-info" style="margin-right: 1rem; color: #6B7280;"></span> -->
+                <button id="btn-logout" class="btn btn-text" style="margin-right: 0.5rem;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+                <button id="btn-export" class="btn btn-outline">
+                    <i class="fa-solid fa-download"></i> Export
+                </button>
+                <button id="btn-add-ticket" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> Add Ticket
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Section -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Total Tickets</span>
+                    <i class="fa-solid fa-ticket stat-icon"></i>
+                </div>
+                <div class="stat-value" id="stat-total-tickets">0</div>
+                <div class="stat-footer">
+                    <span id="stat-available">0</span> Available
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Sold</span>
+                    <i class="fa-solid fa-user-group stat-icon"></i>
+                </div>
+                <div class="stat-value" id="stat-sold">0</div>
+                <div class="stat-footer">
+                    <span id="stat-capacity">0%</span> capacity
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Revenue</span>
+                    <i class="fa-solid fa-dollar-sign stat-icon"></i>
+                </div>
+                <div class="stat-value" id="stat-revenue">GHS 0</div>
+                <div class="stat-footer">
+                    Avg: <span id="stat-avg-price">GHS 0</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Confirmed</span>
+                    <i class="fa-regular fa-circle-check stat-icon"></i>
+                </div>
+                <div class="stat-value" id="stat-confirmed">0</div>
+                <div class="stat-footer">
+                    <span id="stat-confirmed-percent">0%</span> confirmed
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters and Search -->
+        <section class="controls-section">
+            <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="Search by name or phone...">
+            </div>
+            <div class="filters-wrapper">
+                <select id="filter-status" class="filter-select">
+                    <option value="all">All Statuses</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="pending">Pending</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <select id="filter-type" class="filter-select">
+                    <option value="all">All Types</option>
+                    <option value="VIP">VIP</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Early Bird">Early Bird</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Ticket Table -->
+        <main class="table-section">
+            <div class="section-header">
+                <h2>Ticket Details</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="ticket-table">
+                    <thead>
+                        <tr>
+                            <th>Attendee</th>
+                            <th>Phone</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Purchase Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticket-table-body">
+                        <!-- Rows will be populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-results" class="no-results hidden">
+                <i class="fa-solid fa-inbox"></i>
+                <p>No tickets found matching your criteria.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Adding Ticket -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add New Ticket</h3>
+                <button id="btn-close-modal" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="add-ticket-form">
+                <div class="form-group">
+                    <label for="input-name">Attendee Name</label>
+                    <input type="text" id="input-name" required placeholder="e.g. John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="input-phone">Phone Number (Ghana)</label>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span
+                            style="padding: 0.625rem 0.75rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; font-weight: 500; color: #374151;">+233</span>
+                        <input type="tel" id="input-phone" required placeholder="24 123 4567"
+                            pattern="\d{2}\s?\d{3}\s?\d{4}" maxlength="12" style="flex: 1;">
+                    </div>
+                    <small style="color: #6B7280; font-size: 0.75rem;">Enter 9 digits (e.g. 24 123 4567)</small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="input-type">Ticket Type</label>
+                        <select id="input-type" required>
+                            <option value="Standard">Standard (GHS 150)</option>
+                            <option value="VIP">VIP (GHS 250)</option>
+                            <option value="Early Bird">Early Bird (GHS 120)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-status">Status</label>
+                        <select id="input-status" required>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btn-cancel-modal" class="btn btn-text">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Delete Confirmation -->
+    <div id="delete-modal-overlay" class="modal-overlay hidden">
+        <div class="modal delete-modal" style="max-width: 450px;">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #dc2626, #991b1b); color: white; padding: 1.5rem;">
+                <h3 style="color: white; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Delete Ticket
+                </h3>
+                <button id="btn-close-delete-modal" class="btn-icon" style="color: white;"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="padding: 2rem; text-align: center;">
+                <div
+                    style="width: 80px; height: 80px; background: #FEE2E2; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-trash" style="font-size: 2rem; color: #DC2626;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem; font-size: 1.25rem;">Are you absolutely sure?</h4>
+                <p style="color: #6B7280;">This action cannot be undone. This will permanently delete the ticket from
+                    the database.</p>
+            </div>
+            <div class="modal-footer" style="padding: 1.5rem; background: #F9FAFB;">
+                <button type="button" id="btn-cancel-delete" class="btn btn-outline">Cancel</button>
+                <button type="button" id="btn-confirm-delete" class="btn btn-primary"
+                    style="background: linear-gradient(135deg, #dc2626, #991b1b);">
+                    <i class="fa-solid fa-trash"></i> Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal-overlay" class="modal-overlay hidden">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Ticket QR Code</h3>
+                <button id="btn-close-qr-modal" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="padding: 2rem; text-align: center;">
+                <img id="qr-code-image" src="" alt="QR Code" style="max-width: 100%; border-radius: 0.5rem;">
+                <p style="margin-top: 1rem; color: #6B7280; font-size: 0.875rem;">Scan this code at the event</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toast-message">Action successful</span>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
