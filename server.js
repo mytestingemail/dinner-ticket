@@ -114,15 +114,30 @@ const db = new sqlite3.Database('./tickets.db', (err) => {
 
                 // Generate QR codes and insert tickets
                 const insert = db.prepare("INSERT INTO tickets (name, phone, type, price, status, date, qr_code, checked_in) VALUES (?, ?, ?, ?, ?, ?, ?, 0)");
-                initialTickets.forEach(async (t, index) => {
-                    const ticketId = index + 1;
-                    // Generate QR code with URL instead of JSON
-                    const qrUrl = `${SERVER_URL}/checkin/${ticketId}`;
-                    const qrCode = await generateQRCode(qrUrl);
-                    insert.run(t.name, t.phone, t.type, t.price, t.status, t.date, qrCode);
+                
+                // Process tickets sequentially to avoid finalizing the statement too early
+                const processTickets = async () => {
+                    for (let i = 0; i < initialTickets.length; i++) {
+                        const t = initialTickets[i];
+                        const ticketId = i + 1;
+                        // Generate QR code with URL instead of JSON
+                        const qrUrl = `${SERVER_URL}/checkin/${ticketId}`;
+                        const qrCode = await generateQRCode(qrUrl);
+                        await new Promise((resolve, reject) => {
+                            insert.run(t.name, t.phone, t.type, t.price, t.status, t.date, qrCode, (err) => {
+                                if (err) reject(err);
+                                else resolve();
+                            });
+                        });
+                    }
+                    insert.finalize();
+                    console.log('Database seeded with QR codes');
+                };
+                
+                processTickets().catch(err => {
+                    console.error('Error seeding database:', err);
+                    insert.finalize(); // Ensure statement is finalized even if there's an error
                 });
-                insert.finalize();
-                console.log('Database seeded with QR codes');
             }
         });
     }
